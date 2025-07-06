@@ -65,11 +65,11 @@ public class ProductController {
         }
     }
 
-    @ExceptionHandler(ProductNotFoundException.class)
+   /* @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<ProductNotFoundDto> handleProductNotFound(ProductNotFoundException e) {
         ProductNotFoundDto productNotFoundDto = new ProductNotFoundDto();
         productNotFoundDto.setErrorCode(e.getErrorCode());
         productNotFoundDto.setErrorMessage(e.getMessage());
         return new ResponseEntity<>(productNotFoundDto, HttpStatus.NOT_FOUND);
-    }
+    }*/
 }
