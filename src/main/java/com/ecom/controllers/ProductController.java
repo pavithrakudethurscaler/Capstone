@@ -1,5 +1,6 @@
 package com.ecom.controllers;
 
+import com.ecom.dtos.ProductNotFoundDto;
 import com.ecom.exceptions.ProductNotFoundException;
 import com.ecom.models.Product;
 import com.ecom.services.ProductService;
@@ -30,13 +31,9 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProduct(@PathVariable Long id) {
-        try {
-            Product product = productService.getProduct(id);
-            return new ResponseEntity<>(product, HttpStatus.OK);
-        } catch (ProductNotFoundException e) {
-             return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Product> getProduct(@PathVariable Long id) throws ProductNotFoundException {
+        Product product = productService.getProduct(id);
+        return new ResponseEntity<>(product, HttpStatus.OK);
     }
     @PostMapping
     public ResponseEntity<Product> addProduct(@RequestBody Product product) {
@@ -49,30 +46,30 @@ public class ProductController {
     }
 
     @DeleteMapping("/id")
-    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
-        try {
-            boolean isDone = productService.deleteProduct(id);
-            if (isDone) {
-                return new ResponseEntity<>("Product deleted", HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Product not deleted", HttpStatus.NOT_FOUND);
-            }
-        } catch (ProductNotFoundException e) {
-            throw new RuntimeException(e);
+    public ResponseEntity<String> deleteProduct(@PathVariable Long id) throws ProductNotFoundException {
+        boolean isDone = productService.deleteProduct(id);
+        if (isDone) {
+            return new ResponseEntity<>("Product deleted", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Product not deleted", HttpStatus.NOT_FOUND);
         }
     }
 
     @PostMapping("/id")
-    public ResponseEntity<String> updateProduct(@RequestBody Product product) {
-        try {
-            boolean isUpdated = productService.updateProduct(product);
-            if (isUpdated) {
-                return new ResponseEntity<>("Product updated", HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Product not updated", HttpStatus.NOT_FOUND);
-            }
-        } catch (ProductNotFoundException ex) {
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    public ResponseEntity<String> updateProduct(@RequestBody Product product) throws ProductNotFoundException {
+        boolean isUpdated = productService.updateProduct(product);
+        if (isUpdated) {
+            return new ResponseEntity<>("Product updated", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Product not updated", HttpStatus.NOT_FOUND);
         }
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ProductNotFoundDto> handleProductNotFound(ProductNotFoundException e) {
+        ProductNotFoundDto productNotFoundDto = new ProductNotFoundDto();
+        productNotFoundDto.setErrorCode(e.getErrorCode());
+        productNotFoundDto.setErrorMessage(e.getMessage());
+        return new ResponseEntity<>(productNotFoundDto, HttpStatus.NOT_FOUND);
     }
 }

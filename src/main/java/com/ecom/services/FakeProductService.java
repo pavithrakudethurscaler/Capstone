@@ -3,13 +3,16 @@ package com.ecom.services;
 import com.ecom.exceptions.ProductNotFoundException;
 import com.ecom.models.Category;
 import com.ecom.models.Product;
-import dtos.FakeStoreProductDto;
+import com.ecom.dtos.FakeStoreProductDto;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class FakeProductService implements ProductService {
@@ -34,7 +37,7 @@ public class FakeProductService implements ProductService {
     public Product getProduct(Long id) throws ProductNotFoundException {
         FakeStoreProductDto fakeStoreProductDto = restTemplate.getForObject("https://fakestoreapi.com/products/" + id, FakeStoreProductDto.class);
         if (fakeStoreProductDto == null) {
-            throw new ProductNotFoundException("Product not found:"+id);
+            throw new ProductNotFoundException(100, "Product not found:"+id);
         }
         return convertDtoToProduct(fakeStoreProductDto);
     }
@@ -42,7 +45,6 @@ public class FakeProductService implements ProductService {
     @Override
     public Product addProduct(Product product) {
         FakeStoreProductDto fakeStoreProductDto = new FakeStoreProductDto();
-        fakeStoreProductDto.setId(product.getId());
         fakeStoreProductDto.setTitle(product.getName());
         fakeStoreProductDto.setPrice(product.getPrice());
         fakeStoreProductDto.setCategory(product.getCategory().getName());
@@ -61,17 +63,36 @@ public class FakeProductService implements ProductService {
         try {
             restTemplate.put("https://fakestoreapi.com/products/" + product.getId(), fakeStoreProductDto);
         } catch (Exception e) {
-            throw new ProductNotFoundException("Product not found:"+product.getId());
+            throw new ProductNotFoundException(100, "Product not found:"+product.getId());
         }
         return true;
     }
+
+    /*@Override
+    public Product replaceProduct(Long id, Product product) {
+        FakeStoreProductDto fakeStoreProductDto = new FakeStoreProductDto();
+        fakeStoreProductDto.setTitle(product.getName());
+        fakeStoreProductDto.setDescription(product.getDescription());
+        fakeStoreProductDto.setPrice(product.getPrice());
+
+        RequestCallback requestCallback = restTemplate.httpEntityCallback(fakeStoreProductDto, FakeStoreProductDto.class);
+        ResponseExtractor<ResponseEntity<FakeStoreProductDto>> responseExtractor =
+                restTemplate.responseEntityExtractor(FakeStoreProductDto.class);
+
+        FakeStoreProductDto fakeStoreProductDto1 =
+                restTemplate
+                        .execute("https://fakestoreapi.com/products/" + id, HttpMethod.PUT, requestCallback, responseExtractor)
+                        .getBody();
+        restTemplate.put("https://fakestoreapi.com/products/" + id, fakeStoreProductDto1);
+        return convertDtoToProduct(fakeStoreProductDto1);
+    }*/
 
     @Override
     public boolean deleteProduct(Long id) throws ProductNotFoundException {
         try {
             restTemplate.delete("https://fakestoreapi.com/products/" + id);
         } catch (Exception e) {
-            throw new ProductNotFoundException("Product not found:"+id);
+            throw new ProductNotFoundException(100, "Product not found:"+id);
         }
         return true;
     }
